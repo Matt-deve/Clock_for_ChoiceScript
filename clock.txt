@@ -1,0 +1,584 @@
+*bug "! ! ! Clock Module Should not be loaded directly ! ! !"
+
+*comment =====================================================================================================
+*comment --  ACCESSIBLE SUBROUTINES -- The following are intended to be called from scene files
+*comment -- set_format_date : Sets the date formatting variable, using letters 'wdmy' and formatting marks e.g. ':; ,._"
+*comment -- set_format_time : Sets the time formatting variable, using letters 'smh' and formatting marks e.g. ':; ,._"
+*comment -- set_current     : Sets the current time, using numbers and letters 'smhDMY' or formatting marks e.g. ':; ,._/', and escaped commands '%0' or '%r'
+*comment -- to_format       :
+*comment -- travel          : Moves the current time, using numbers and letters 'smhDMY' and '-' (minus)
+*comment -- stamp           : Sets the stamps for the current time. If setting time manually (i.e. using *set min 30) this will update the stamps to reflect the time change. If using 'travel', this is called internally.
+*comment -- floor           : Rounds a floating point number down to the nearest integer. (also works for negative values)
+*comment -- ceil            : Rounds a floating point number up to the nearest integer. (also works for negative values)
+*comment =====================================================================================================
+
+*comment---------------------------------------------------------
+*comment -- SET CURRENT -- (sc_code : string) -> (sec:number, min:number, hour:number, day:number, month:number, year:number)
+*comment -- Parses the passed string and sets the current time, any elements not set will remain unchanged. If a /0 is passed, it will set any missing elements to 0, if a /r is passed it will set any missing elements to the reference date.
+*label set_current
+*params sc_code
+
+*gosub _check_settings
+*comment -- Parse the passed string code of time values to change time by
+*if length(sc_code) < 2
+    *set returnVal 0
+    *return
+*temp_array timebreaks 3 "hour" "min" "sec"
+*temp_array datebreaks 3 "day" "month" "year"
+*temp res 0
+*temp len length(sc_code)
+*temp i 1
+*temp n ""
+*temp timebreak_used 0
+*temp datebreak_used 0
+*temp breaking ""
+*temp set_end ""
+*temp_array used 6 false
+*temp_array vars 6 "year" "month" "day" "hour" "min" "sec"
+*label _sc_loop
+*if (len = 0)
+    *bug "Cannot parse an empty string"
+*temp p sc_code#i
+*if (p = 0) or ((p = 1) or ((p = 2) or ((p = 3) or ((p = 4) or ((p = 5) or ((p = 6) or ((p = 7) or ((p = 8) or ((p = 9))))))))))
+    *set n n&p
+*elseif (p = "s")
+    *set sec (n)
+    *set n ""
+    *set used[6] true
+*elseif (p = "m")
+    *set min (n)
+    *set n ""
+    *set used[5] true
+*elseif (p = "h")
+    *set hour (n)
+    *set n ""
+    *set used[4] true
+*elseif (p = "D")
+    *set day (n)
+    *set n ""
+    *set used[3] true
+*elseif (p = "M")
+    *set month (n)
+    *set n ""
+    *set used[2] true
+*elseif (p = "Y")
+    *set year (n)
+    *set n ""
+    *set used[1] true
+*elseif (p = " ") or ((p = "_") or (p = ";"))
+    *if (breaking = "time")
+        *set timebreak_used +1
+        *set {timebreaks[timebreak_used]} (n)
+        *set used[(3+timebreak_used)] true
+    *elseif (breaking = "date")
+        *set datebreak_used +1
+        *set {datebreaks[datebreak_used]} (n)
+        *set used[(4-datebreak_used)] true
+    *else
+        *bug "Check formatting, 'space' '_' ';' are separators between formatted dates and times"
+    *set n ""
+*elseif (p = ",") or ((p = ".") or (p = "/"))
+    *set datebreak_used +1
+    *set breaking "date"
+    *set {datebreaks[datebreak_used]} (n)
+    *set n ""
+    *set used[(4-datebreak_used)] true
+*elseif (p = ":")
+    *set timebreak_used +1
+    *set breaking "time"
+    *set {timebreaks[timebreak_used]} (n)
+    *set n ""
+    *set used[(timebreak_used +3)] true
+*elseif (p = "%")
+    *if (i < len)
+        *set set_end sc_code#(i+1)
+        *set i+2
+    *else
+        *bug "A '%' was used without a following reference: either '0' or 'r'"
+*else
+    *bug "Incorrect time unit passed -> ${p} <- , must be a number or one of: 's' 'm' 'h' 'D' 'M' 'Y' '.' ',' ':' ';' '_' or 'space'"
+
+*if (i < len)
+    *set i +1
+    *goto _sc_loop
+*elseif (n != "")
+    *if (breaking = "date")
+        *set datebreak_used +1
+        *set {datebreaks[datebreak_used]} (n)
+        *set used[(4-datebreak_used)] true
+    *else
+        *set sec (n)
+
+*if (set_end != "")
+    *temp ul_i 1
+    *label _used_loop
+    *if (ul_i <= used_count)
+        *if not(used[ul_i])
+            *if (set_end = 0)
+                *if (ul_i <= 3)
+                    *set {vars[ul_i]} 1
+                *else
+                    *set {vars[ul_i]} 0
+            *elseif (set_end = "r")
+                *temp refVal "ref_"&(vars[ul_i])
+                *set {vars[ul_i]} {refVal}
+            *else
+                *bug "set_end should be blank! and this should not run!"
+        *set ul_i +1
+        *goto _used_loop
+
+
+*gosub stamp
+
+*return
+
+
+*comment---------------------------------------------------------
+*comment -- SET FORMAT DATE -- (set_format_date : string) -> (format_date : string)
+*comment -- Sets the date format to be used when interpolating the variable : stamp_date
+*label set_format_date
+*params format_d
+*comment TODO add checks on string passed
+*set format_date format_d
+
+*return
+
+*comment---------------------------------------------------------
+*comment -- SET FORMAT TIME -- (set_format_time : string) -> (format_time : string)
+*comment -- Sets the time format to be used when interpolating the variable : stamp_time
+*label set_format_time
+*params format_t
+*comment TODO add checks on string passed
+*set format_time format_t
+
+*return
+
+*comment---------------------------------------------------------
+*comment -- TO FORMAT -- (f_n : number) -> (returnVal : string)
+*comment -- Converts the passed number into a datetime string which it returns
+*label to_format
+*params f_n
+*comment TODO requires divisioning of other routines loops and checks
+
+*return
+
+*comment---------------------------------------------------------
+*comment -- TRAVEL -- (str : string) -> (stamp_date : string, stamp_time : string, stamp_unix : string)
+*comment -- Moves the current time according to the passed datetime code
+*label travel
+*params str
+
+*gosub _check_settings
+*comment -- Parse the passed string code of time values to change time by
+*if length(str) < 2
+    *set returnVal 0
+    *return
+*temp_array timebreaks 3 "hour" "min" "sec"
+*temp_array datebreaks 3 "day" "month" "year"
+*temp res 0
+*temp len length(str)
+*temp i 1
+*temp n ""
+*temp sign ""
+*temp timebreak_used 0
+*temp datebreak_used 0
+*temp breaking ""
+*label _search_loop
+*if (len = 0)
+    *bug "Cannot parse an empty string"
+*temp p str#i
+*if (p = 0) or ((p = 1) or ((p = 2) or ((p = 3) or ((p = 4) or ((p = 5) or ((p = 6) or ((p = 7) or ((p = 8) or ((p = 9))))))))))
+    *set n n&p
+*elseif (p = "s")
+    *set sec +(sign&n)
+    *set n ""
+*elseif (p = "m")
+    *set min +(sign&n)
+    *set n ""
+*elseif (p = "h")
+    *set hour +(sign&n)
+    *set n ""
+*elseif (p = "D")
+    *set day +(sign&n)
+    *set n ""
+*elseif (p = "M")
+    *set month +(sign&n)
+    *set n ""
+*elseif (p = "Y")
+    *set year +(sign&n)
+    *set n ""
+*elseif (p = "-")
+    *set sign p
+*elseif (p = " ") or ((p = "_") or (p = ";"))
+    *if (breaking = "time")
+        *set timebreak_used +1
+        *set {timebreaks[timebreak_used]} +(sign&n)
+    *elseif (breaking = "date")
+        *set datebreak_used +1
+        *set {datebreaks[datebreak_used]} +(sign&n)
+    *else
+        *bug "Check formatting, 'space' '_' ';' are separators between formatted dates and times"
+    *set n ""
+*elseif (p = ",") or ((p = ".") or (p = "/"))
+    *set datebreak_used +1
+    *set breaking "date"
+    *set {datebreaks[datebreak_used]} +(sign&n)
+    *set n ""
+*elseif (p = ":")
+    *set timebreak_used +1
+    *set breaking "time"
+    *set {timebreaks[timebreak_used]} +(sign&n)
+    *set n ""
+*else
+    *bug "Incorrect time unit passed -> ${p} <- , must be a number or one of: 's' 'm' 'h' 'D' 'M' 'Y' '.' ',' ':' ';' '_' '/'or 'space'"
+
+*if (i < len)
+    *set i +1
+    *goto _search_loop
+*elseif (n != "")
+    *if (breaking = "date")
+        *set datebreak_used +1
+        *set {datebreaks[datebreak_used]} +(sign&n)
+    *else
+        *set sec +(sign&n)
+
+
+*comment -- resolve overflows and underflows
+*gosub _resolve
+*comment -- set date, time and unix stamps
+*gosub stamp
+
+*return
+
+*comment ------------------------------------------------------------
+*comment -- STAMP -- () -> (stamp_date : string, stamp_time : string)
+*comment -- Converts the current date and time according to the set formats into date and time stamp variables. Also sets the unix timestamp from the reference date.
+*label stamp
+
+*gosub _check_settings
+
+*temp st_i 1
+*temp st_len length(format_date)
+*temp st_format format_date
+*temp st_count 0
+*temp st_mark st_format#st_i
+*temp st_res ""
+*temp st_ref ""
+
+*comment -- Set the unix timestamp
+*gosub _unix
+
+*label _stamp_loop
+*if (st_i <= st_len)
+    *comment -- Set reference pointer and test if same as previous mark
+    *set st_ref st_format#st_i
+    *if (st_ref = st_mark) and (st_i < st_len)
+        *set st_count +1
+    *else
+        *comment -- Check if is last term and same as previous
+        *if (st_i = st_len) and (st_ref = st_mark)
+            *set st_count +1
+        *comment -- Check format being tested
+        *if (st_format = format_date)
+            *comment -- Date format being tested
+            *if (st_mark = "D") or (st_mark = "d")
+                *if (st_count = 1) or (day >= 10)
+                    *set st_res st_res&day
+                *else
+                    *set st_res st_res&"0${day}"
+            *elseif (st_mark = "M") or (st_mark = "m")
+                *if (st_count = 1)
+                    *set st_res st_res&month
+                *elseif (st_count = 2)
+                    *if (month < 10)
+                        *set st_res st_res&"0${month}"
+                    *else
+                        *set st_res st_res&month
+                *else
+                    *set st_res st_res&(month_names[month])
+            *elseif (st_mark = "Y") or (st_mark = "y")
+                *if (st_count <= 2)
+                    *set st_res st_res&"${year#(length(year) - 1)}${year#length(year)}"
+                *else
+                    *set st_res st_res&year
+            *elseif (st_mark = "W") or (st_mark = "w")
+                *set st_res st_res&weekday
+            *else
+                *set st_res st_res&st_mark
+        *elseif (st_format = format_time)
+            *comment -- Time format being tested
+            *if (st_mark = "H") or (st_mark = "h")
+                *if (st_count = 1) or (hour >= 10)
+                    *set st_res st_res&hour
+                *else
+                    *set st_res st_res&"0${hour}"
+            *elseif (st_mark = "M") or (st_mark = "m")
+                *if (st_count = 1) or (min >= 10)
+                    *set st_res st_res&min
+                *else
+                    *set st_res st_res&"0${min}"
+            *elseif (st_mark = "S") or (st_mark = "s")
+                *if (st_count = 1) or (sec >= 10)
+                    *set st_res st_res&sec
+                *else
+                    *set st_res st_res&"0${sec}"
+            *else
+                *set st_res st_res&st_mark
+        *comment -- Reset mark and count
+        *set st_mark st_ref
+        *set st_count 1
+    *comment -- setup for next pass
+    *set st_i +1
+    *set st_ref ""
+    *goto _stamp_loop
+    
+*elseif (st_format = format_date)
+    *comment -- Switch from parsing date to parsing time formats
+    *comment -- Set the date stamp
+    *set stamp_date st_res
+    *comment -- Reset temps and switch over to setting timestamp
+    *set st_i 1
+    *set st_mark ""
+    *set st_count 0
+    *set st_len length(format_time)
+    *set st_format format_time
+    *set st_res ""
+    *goto _stamp_loop
+*else
+    *comment -- Set the time stamp
+    *set stamp_time st_res
+    ${st_res}
+
+*gosub _revert_settings
+
+*return
+
+*comment---------------------------------------------------------
+*comment -- FLOOR -- (floor_num : number) -> (returnVal : number)
+*comment -- Floors a number (or stringified number) to the nearest integer lower than the passed value
+*label floor
+*params floor_num
+
+*set returnVal round(floor_num - 0.5)
+
+*return
+
+*comment---------------------------------------------------------
+*comment -- CEIL -- (ceil_num : number) -> (returnVal : number)
+*comment -- Sets a number to the nearest integer higher than the passed value
+*label ceil
+*params ceil_num
+
+*set returnVal round(ceil_num + 0.5)
+
+*return
+
+
+*comment =======================================================================================================================
+*comment --  INTERNAL SUBROUTINES  --  ! Direct calls to these routines may yield unexpected results ! --
+*comment =======================================================================================================================
+
+
+*comment---------------------------------------------------------
+*comment -- CHECK SETTINGS -- () -> ()
+*comment -- Checks the game environment setup for missing values, will error if something is missing
+*label _check_settings
+*temp icf_setting implicit_control_flow
+*set implicit_control_flow true
+*set returnVal ""
+*return
+
+*comment---------------------------------------------------------
+*comment -- REVERT SETTINGS -- () -> ()
+*comment -- Reverts the settings to author defined
+*label _revert_settings
+*set implicit_control_flow icf_setting
+*return
+
+*comment---------------------------------------------------------
+*comment -- CHECK MONTH -- () -> (month : string)
+*comment -- Checks the month index falls within the range of 1 to the number of months' lengths have been provided for
+*label _check_month
+*if (month < 1)
+    *set month +month_len_count
+*elseif (month > month_len_count)
+    *set month -month_len_count
+*else
+    *return
+*goto _check_month
+
+*comment---------------------------------------------------------
+*comment -- UNIX -- () -> (stamp_unix : string, returnVal : string)
+*comment -- Takes the date and time and converts it into a unix time based on the reference date time set
+*label _unix
+
+*temp u_sign ""
+*if (year < ref_year)
+    *set u_sign "-"
+*elseif (month < ref_month)
+    *set u_sign "-"
+*elseif (day < ref_day)
+    *set u_sign "-"
+*elseif (hour < ref_hour)
+    *set u_sign "-"
+*elseif (min < ref_min)
+    *set u_sign "-"
+*elseif (sec < ref_sec)
+    *set u_sign "-"
+
+*temp u_year 0
+*temp u_month 0
+*temp u_day 0
+*temp u_hour 0
+*temp u_min 0
+*temp u_sec 0
+
+*temp uml_month 0
+*temp uml_day 0
+*temp uml_year 0
+
+
+*if (u_sign = "")
+    *if (year - ref_year) > 1
+        *comment - whole years
+        *set u_year +((year - ref_year) - 1)
+    *comment - calculate remainder months and days
+    *set uml_month ref_month
+    *set uml_day ref_day
+    *set uml_year ref_year
+    *label _u_mon_loop
+    *if (uml_month != month)
+        *comment - adjust for leap day being reached
+        *if ((uml_year modulo leap_freq) = 0) and (uml_month = leap_month)
+            *set u_day +(((month_len[uml_month]) - uml_day) + 2)
+        *else
+            *set u_day +(((month_len[uml_month]) - uml_day) + 1)
+        *set uml_day 1
+        *set uml_month +1
+        *if (uml_month > month_len_count)
+            *set uml_month 1
+            *set uml_year year
+        *goto _u_mon_loop
+    *else
+        *set u_day +(day - 1)
+    *set u_hour +(hour - ref_hour)
+    *set u_min +(min - ref_min)
+    *set u_sec +(sec - ref_sec)
+*else
+    *if (ref_year - year) > 1
+        *comment - Set whole years
+        *set u_year +((year - ref_year) - 1)
+    *comment - Calculate remainder months and days
+    *set uml_year year
+    *set uml_month month
+    *set uml_day day
+    *label _u_mon_loop_inv
+    *if (uml_month != ref_month)
+        *comment - adjust for leap day being reached
+        *if ((uml_year modulo leap_freq) = 0) and (uml_month = leap_month)
+            *set u_day +(((month_len[uml_month]) - uml_day) + 1)
+        *else
+            *set u_day +(((month_len[uml_month]) - uml_day) )
+        *set uml_day 1
+        *set uml_month +1
+        *if (uml_month > month_len_count)
+            *set uml_month 1
+            *set uml_year ref_year
+        *goto _u_mon_loop_inv
+    *else
+        *set u_day +(ref_day)
+    *set u_hour +(ref_hour - hour)
+    *set u_min +(ref_min - min)
+    *set u_sec +(ref_sec - sec)
+    
+*comment -- Set leap days
+*set u_day +(round((u_year / leap_freq) - 0.5))
+
+*comment -- Get the weekday
+*temp dnc 0
+*set dnc day_names_count
+*temp u_wd 0
+*if (u_sign = "-")
+    *set u_wd ref_weekday - (u_day modulo dnc)
+    *if u_wd < 1
+        *set u_wd +dnc
+    *set weekday day_names[u_wd]
+*else
+    *set u_wd (u_day modulo dnc) + ref_weekday
+    *if u_wd > dnc
+        *set u_wd -dnc
+    *set weekday day_names[u_wd]
+
+
+*comment -- Condensed time units into seconds
+*set u_hour +(u_day * 24)
+*set u_min +(u_hour * 60)
+*set u_sec +(u_min * 60)
+
+*comment -- Set return values
+*set returnVal u_sign&u_sec
+*set stamp_unix u_sign&u_sec
+
+*return
+
+
+
+*comment ------------------------------------------------------------
+*comment -- RESOLVE -- () -> ()
+*comment -- Resolves any under/overflow of datetime parts with respect to their min-max values
+*label _resolve
+
+*if (sec < 0)
+    *gosub ceil (sec / min_len)
+    *set min +returnVal
+    *set sec min_len - (sec modulo min_len)
+*elseif (sec >= min_len)
+    *gosub floor (sec / min_len)
+    *set min +returnVal
+    *set sec sec modulo min_len
+*if (min < 0)
+    *gosub ceil (min / hour_len)
+    *set hour +returnVal
+    *set min hour_len - (min modulo hour_len)
+*elseif (min >= hour_len)
+    *gosub floor (min / hour_len)
+    *set hour +returnVal
+    *set min min modulo hour_len
+*if (hour < 0)
+    *gosub ceil (hour / day_len)
+    *set day +returnVal
+    *set hour (day_len - (hour modulo day_len))
+*elseif (hour >= day_len)
+    *gosub floor (hour / day_len)
+    *set day +returnVal
+    *set hour (hour modulo day_len)
+
+*label _year_loop
+*if (month <= 0)
+    *set year -1
+    *set month +(month_len_count)
+    *goto _year_loop
+*elseif (month > month_len_count)
+    *set year +1
+    *set month -(month_len_count)
+    *goto _year_loop
+
+*if (day <= 0)
+    *temp prev_month (month - 1)
+    *if (prev_month <= 0)
+        *set prev_month +(month_len_count)
+    *if ((year modulo leap_freq) = 0) and (prev_month = leap_month)
+        *set day +((month_len[prev_month]) + 1)
+    *else
+        *set day +(month_len[prev_month])
+    *set month -1
+    *goto _year_loop
+*elseif (day > month_len[month])
+    *if ((year modulo leap_freq) = 0) and ((month = leap_month) and (day > ((month_len[month]) + 1)))
+        *set day -((month_len[month]) + 1)
+    *else
+        *set day -(month_len[month])
+    *set month +1
+    *goto _year_loop
+
+*return
