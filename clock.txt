@@ -1,5 +1,9 @@
 *bug "! ! ! Clock Module Should not be loaded directly ! ! !"
 
+*comment -- CLOCK --
+*comment -- A Clock Module for use in ChoiceScript projects.
+*comment -- By CodedQuill aka Matt-deve
+
 *comment =====================================================================================================
 *comment --  ACCESSIBLE SUBROUTINES -- The following are intended to be called from scene files
 *comment -- set_format_date : Sets the date formatting variable, using letters 'wdmy' and formatting marks e.g. ':; ,._"
@@ -7,11 +11,49 @@
 *comment -- set_current     : Sets the current time, using numbers and letters 'smhDMY' or formatting marks e.g. ':; ,._/', and escaped commands '%0' or '%r'
 *comment -- to_format       :
 *comment -- travel          : Moves the current time, using numbers and letters 'smhDMY' and '-' (minus)
-*comment -- stamp           : Sets the stamps for the current time. If setting time manually (i.e. using *set min 30) this will update the stamps to reflect the time change. If using 'travel', this is called internally.
+*comment -- stamp           : Sets the stamps for the current time. If setting time manually (i.e. using *set min 30) use this subroutine to update the stamps to reflect the time change. If using 'travel' or 'set_current', this subroutine is automatically called internally.
 *comment -- floor           : Rounds a floating point number down to the nearest integer. (also works for negative values)
 *comment -- ceil            : Rounds a floating point number up to the nearest integer. (also works for negative values)
 *comment =====================================================================================================
 
+*comment -- VARIABLES TO CREATE IN STARTUP.TXT --  Cut and paste --
+*comment -- CLOCK CONSTANTS --
+*create_array month_len 12 31 28 31 30 31 30 31 31 30 31 30 31
+*create_array month_names 12 "January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"
+*create_array day_names 7 "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday" "Sunday"
+*create leap_freq 4
+*create leap_month 2
+*create ref_sec 0
+*create ref_min 0
+*create ref_hour 0
+*create ref_day 1
+*create ref_month 1
+*create ref_year 1970
+*create ref_weekday 4
+*create min_len 60
+*create hour_len 60
+*create day_len 24
+*create year_len 365
+*comment -- CLOCK TIME AND DATE VARIABLES --
+*create sec 0
+*create min 0
+*create hour 0
+*create day 1
+*create month 1
+*create year 1970
+*create unix 0
+*create weekday "Thursday"
+*comment -- CLOCK STAMP AND FORMATTING VARIABLES --
+*create format_date "W DD.MM.YYYY"
+*create format_time "hh:mm:ss"
+*create stamp_date ""
+*create stamp_time ""
+*create stamp_unix ""
+
+
+*comment =====================================================================================================
+*comment -- MAIN ROUTINES --
+*comment =====================================================================================================
 *comment---------------------------------------------------------
 *comment -- SET CURRENT -- (sc_code : string) -> (sec:number, min:number, hour:number, day:number, month:number, year:number)
 *comment -- Parses the passed string and sets the current time, any elements not set will remain unchanged. If a /0 is passed, it will set any missing elements to 0, if a /r is passed it will set any missing elements to the reference date.
@@ -580,5 +622,6 @@
         *set day -(month_len[month])
     *set month +1
     *goto _year_loop
+
 
 *return
