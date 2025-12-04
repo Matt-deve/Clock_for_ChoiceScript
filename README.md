@@ -35,3 +35,7 @@ When using 'set_current' (or 'travel' - more later) certain formatting marks den
 Warning, if no formatting marks are used the routine will assume you mean seconds and then set the time accordingly.
 However, if you want to make it explicitly clear to the parser what is going on, you can use a number followed by a letter 's' 'm' 'h' 'D' 'M' or 'Y' to denote the datetime unit to change. These can then be in any order.
 #### Missing Units Commands
+There is also method of telling the parser what to do with any datetime units you haven't specified. This uses '%' symbol followed by either a '0' or 'r'. So '%0' will set all missing values to '0' if an hour, minute or second, or '1' if it is a day, month or year. Using '%r' will set missing values to the refernce datetime setup at the start. For example, '27s32m5h%r' will set the time to 05:32 and 27 seconds on the first of January 1970 (as this is the preset reference date). '27s32m5h%0' on the other hand will set the date to the first of January in year 1.
+### Getting the Time and Date
+#### Formatting
+The subroutines 'set_format_date' and 'set_format_time' sets how the date and time should be written when you need a datetime stamp. This follows a similar procedure as setting the current time and date, but now we omit the numbers and add more letters and formatting marks to show how it will be written.
