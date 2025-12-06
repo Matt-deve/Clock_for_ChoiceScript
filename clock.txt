@@ -466,6 +466,15 @@
 *temp icf_setting implicit_control_flow
 *set implicit_control_flow true
 *set returnVal ""
+*comment -- Calculate year_len based on month_len array entries
+*temp cs_i 1
+*temp cs_c 0
+*label _cs_loop
+*if (cs_i <= month_len_count)
+    *set cs_c +(month_len[cs_i])
+    *set cs_i +1
+*set year_len cs_c
+
 *return
 
 *comment---------------------------------------------------------
