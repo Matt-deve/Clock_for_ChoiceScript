@@ -334,13 +334,13 @@
         *if (st_format = format_date)
             *comment -- Date format being tested
             *if (st_mark = "D") or (st_mark = "d")
-                *if (st_count = 1) or (day >= 10)
-                    *set st_res st_res&day
+                *if (st_count = 2) and (day < 10)
+                    *set st_res st_res&"0${day}"
                 *elseif (st_count = 3)
                     *gosub ordinal day
                     *set st_res st_res&returnVal
                 *else
-                    *set st_res st_res&"0${day}"
+                    *set st_res st_res&day
             *elseif (st_mark = "M") or (st_mark = "m")
                 *if (st_count = 1)
                     *set st_res st_res&month
@@ -447,9 +447,9 @@
 *temp o_len length(o_num)
 
 *if (o_num >= 4) and (o_num <= 20)
-    *set returnVal "th"
+    *set returnVal o_num&"th"
 *elseif ((o_num#o_len) > 3) or ((o_num#o_len) = 0)
-    *set returnVal "th"
+    *set returnVal o_num&"th"
 *else
     *set returnVal o_num&(suff[(o_num#o_len)])
 *return
