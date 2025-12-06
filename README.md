@@ -3,7 +3,12 @@ An open source Clock Module for *ChoiceScript* projects.
 By Matt-deve aka CodedQuill
 
 ## Description
+
+#### In Brief
 A clock module allowing you to easily change the time and date with a single call to a subroutine, and then dynamically write it into your text. Users can define their own calendrical systems, date and time stamp formatting, and even use a pseudo-unix timestamp.
+
+#### Supporting
+
 
 ## Setup
 Download the file and add to your project with your other scene files.
@@ -91,7 +96,7 @@ A single or double letter writes the last two digits of the year. A triple or qu
 ### Travelling in Time
 Use `travel` and pass a formatted time code as a parameter to travel forwards or back in time. The amounts specified will be added to the corresponding variables, so use negative values to go backwards in time! The values passed are also applied to the individual units, so passing `1M` as a parameter will move the time forward 1 whole month, not 30.4 days. The stamps will then update accordingly.
 
-### Limitations
+## Limitations
 Known limitations as of 2025.12.06. Future updates may remove these issues in the future!
 
 *NOTE!* No support for BC/BCE dates. Years below 1 will return a negative number.
