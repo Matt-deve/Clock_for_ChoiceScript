@@ -41,19 +41,26 @@ There is also method of telling the parser what to do with any datetime units yo
 When you need a formatted date or time stamp, `${stamp_date}` or `${stamp_time}` will write it dirrectly into your text. If you would like the pseudo-unix timestamp, use `${stamp_unix}`. The stamps are updated automatically when setting the time or date using the built-in subroutines. However, setting any variables manually won't automatically update the stamps, to do this use `*gosub_scene clock stamp`.
 #### Formatting
 The subroutines `set_format_date` and `set_format_time` sets how the date and time should be written when you need a datetime stamp. This follows a similar procedure as setting the current time and date, but now we omit the numbers and add more letters and formatting marks to show how it will be written.
-`w` or `W`   To denote a weekday element. `w` writes the first letter, `ww` first two letters, `www` three letter abbreviation, `wwww` full weekday name.
-`s` or `S` To denote seconds.
-`m` or `M` To denote minutes.
-`h` or `H` To denote hours.
+*`w` or `W`   To denote a weekday element. `w` writes the first letter, `ww` first two letters, `www` three letter abbreviation, `wwww` full weekday name.
+*`s` or `S` To denote seconds.
+*`m` or `M` To denote minutes.
+*`h` or `H` To denote hours.
+
 A single letter will write the number, a double letter will write the number with leading zeroes if below 10.
-`d` or `D` To denote days.
-`m` or `M` To denote months.
+
+*`d` or `D` To denote days.
+*`m` or `M` To denote months.
+
 A single letter will write the number, a double letter will write the number with leading zeroes if below 10.
-`mmm` or `MMM` will write the three-letter abbreviation for the month.
-`mmmm` or `MMMM` will write the full name of the month.
-`y` or `Y` To denote years.
+
+*`mmm` or `MMM` will write the three-letter abbreviation for the month.
+*`mmmm` or `MMMM` will write the full name of the month.
+*`y` or `Y` To denote years.
+
 A single or double letter writes the last two digits of the year. A triple or quadruple letter writes the full year number.
-`, . _ - : ; ' / of` etc are added 'as is' into the format.
+
+*`, . _ - : ; ' / of` etc are added 'as is' into the format.
+
 Adding words and numbers to the formatted stamp can be done, BUT care should be taken not to duplicate any key letters which will be interpolated into numbers!
 ### Travelling in Time
 Use `travel` and pass a formatted time code as a parameter to travel forwards or back in time. The amounts specified will be added to the corresponding variables, so use negative values to go backwards in time! The values passed are also applied to the individual units, so passing `1M` as a parameter will move the time forward 1 whole month, not 30.4 days. The stamps will then update accordingly.
