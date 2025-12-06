@@ -22,7 +22,8 @@
 *comment -- ceil            : Rounds a floating point number up to the nearest integer. (also works for negative values)
 *comment =====================================================================================================
 
-*comment -- VARIABLES TO CREATE IN STARTUP.TXT --  Cut and paste --
+*comment -- VARIABLES TO CREATE IN STARTUP.TXT 
+*comment -- START OF CUT AND PASTE --
 *comment -- CLOCK CONSTANTS --
 *create_array month_len 12 31 28 31 30 31 30 31 31 30 31 30 31
 *create_array month_names 12 "January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"
@@ -56,6 +57,7 @@
 *create stamp_time ""
 *create stamp_unix ""
 
+*comment -- END OF CUT AND PASTE --
 
 *comment =====================================================================================================
 *comment -- MAIN ROUTINES --
@@ -188,6 +190,7 @@
 *params format_d
 *comment TODO add checks on string passed
 *set format_date format_d
+*gosub stamp
 
 *return
 
@@ -198,6 +201,7 @@
 *params format_t
 *comment TODO add checks on string passed
 *set format_time format_t
+*gosub stamp
 
 *return
 
@@ -333,7 +337,7 @@
                 *if (st_count = 1) or (day >= 10)
                     *set st_res st_res&day
                 *elseif (st_count = 3)
-                    *gosub ordinal date
+                    *gosub ordinal day
                     *set st_res st_res&returnVal
                 *else
                     *set st_res st_res&"0${day}"
@@ -447,7 +451,7 @@
 *elseif ((o_num#o_len) > 3) or ((o_num#o_len) = 0)
     *set returnVal "th"
 *else
-    *set returnVal suff[(o_num#o_len)]
+    *set returnVal o_num&(suff[(o_num#o_len)])
 *return
 
 *comment =======================================================================================================================
