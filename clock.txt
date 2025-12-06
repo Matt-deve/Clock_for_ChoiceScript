@@ -332,6 +332,9 @@
             *if (st_mark = "D") or (st_mark = "d")
                 *if (st_count = 1) or (day >= 10)
                     *set st_res st_res&day
+                *elseif (st_count = 3)
+                    *gosub ordinal date
+                    *set st_res st_res&returnVal
                 *else
                     *set st_res st_res&"0${day}"
             *elseif (st_mark = "M") or (st_mark = "m")
@@ -430,6 +433,22 @@
 
 *return
 
+*comment---------------------------------------------------------
+*comment -- ORDINAL -- (ns_num : number) -> (returnVal : string)
+*comment -- Sets the return value to the ordinal number of the passed cardinal number
+*label ordinal
+*params o_num
+
+*temp_array suff 4 "st" "nd" "rd" "th"
+*temp o_len length(o_num)
+
+*if (o_num >= 4) and (o_num <= 20)
+    *set returnVal "th"
+*elseif ((o_num#o_len) > 3) or ((o_num#o_len) = 0)
+    *set returnVal "th"
+*else
+    *set returnVal suff[(o_num#o_len)]
+*return
 
 *comment =======================================================================================================================
 *comment --  INTERNAL SUBROUTINES  --  ! Direct calls to these routines may yield unexpected results ! --
