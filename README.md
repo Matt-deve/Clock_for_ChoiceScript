@@ -50,13 +50,13 @@ The subroutines `set_format_date` and `set_format_time` sets how the date and ti
 
 `h` or `H` To denote hours.
 
-A single letter will write the number, a double letter will write the number with leading zeroes if below 10.
-
 `d` or `D` To denote days.
 
 `m` or `M` To denote months.
 
 A single letter will write the number, a double letter will write the number with leading zeroes if below 10.
+
+`ddd` or `DDD` will write the ordinal number i.e. `1st`, `2nd` `3rd` etc
 
 `mmm` or `MMM` will write the three-letter abbreviation for the month.
 
