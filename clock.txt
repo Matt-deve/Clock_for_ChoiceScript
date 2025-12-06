@@ -342,6 +342,8 @@
                         *set st_res st_res&"0${month}"
                     *else
                         *set st_res st_res&month
+                *elseif (st_count = 3)
+                    *set st_res st_res&(((month_names[month])#1)&(((month_names[month])#2)&((month_names[month])#3)))
                 *else
                     *set st_res st_res&(month_names[month])
             *elseif (st_mark = "Y") or (st_mark = "y")
@@ -350,7 +352,14 @@
                 *else
                     *set st_res st_res&year
             *elseif (st_mark = "W") or (st_mark = "w")
-                *set st_res st_res&weekday
+                *if (st_count = 1)
+                    *set st_res st_res&(weekday#1)
+                *elseif (st_count = 2)
+                    *set st_res st_res&((weekday#1)&(weekday#2))
+                *elseif (st_count = 3)
+                    *set st_res st_res&(((weekday#1)&(weekday#2))&(weekday#3))
+                *else
+                    *set st_res st_res&weekday
             *else
                 *set st_res st_res&st_mark
         *elseif (st_format = format_time)
