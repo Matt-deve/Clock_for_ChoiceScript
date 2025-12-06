@@ -1,13 +1,16 @@
 # Clock_for_ChoiceScript
-An open source Clock Module for Choicescript projects.
-By CodedQuill aka Matt-deve
+An open source Clock Module for *ChoiceScript* projects.
+By Matt-deve aka CodedQuill
 
 ## Description
-
+A clock module allowing you to easily change the time and date with a single call to a subroutine, and then dynamically write it into your text. Users can define their own calendrical systems, date and time stamp formatting, and even use a pseudo-unix timestamp.
 
 ## Setup
 Download the file and add to your project with your other scene files.
+
 Locate the section in the module for `*create` variables. Cut and paste these into 'startup.txt'
+
+Call `*gosub_scene clock stamp` to initialise the timestamps before using them in your text. (This only needs to be done once)
 ### References
 The clock uses a set of special reference variables prefixed with `ref_` in order to calculate the pseudo-unix time. They also act as default values in some instances. These are preset to the standard UTC datetime of 1970.01.01 00:00:00 i.e. midnight at the beginning of the first of January 1970.
 If you wish to set a different reference time or date, you can simply change these manually, it's ok, everything will still work!
@@ -30,15 +33,31 @@ Adjust the variables `day_len` `hour_len` and `min_len` to alter the length of t
 #### Basics
 There are 2 methods to set an absolute time and date, by either using the manual method e.g. `*set sec 30` or, preferably by calling the `set_current` subroutine: for example, `*gosub_scene clock set_current "1/4/2001 12:34:27" ` will set the date to the first of April 2001 and the time to 34 minutes and 27 seconds past 12.
 But you don't need to set a full datetime code everytime. Using `1/4/2000` will just set the date and leave the time unchanged, and using `12:34` would change the hour and minute but leave the seconds and date unchanged.
+
+*NOTE!* Dates are parsed in **ascending** units i.e. day month year! Times are parsed in **descending** units i.e. hour minute seconds!
 #### Formatting Marks
-When using `set_current` (or `travel` - more later) certain formatting marks denote the unit of the preceding number. Using `.` `,` or `/` indicates the numbers relate to a date. Using `:` indicates a time. And using ` ` `;` or `_` indicates a switch from parsing a date (or time) to parsing a time (or date).
-Warning, if no formatting marks are used the routine will assume you mean seconds and then set the time accordingly.
+When using `set_current` (or `travel` - more later) certain formatting marks denote the unit of the preceding number. 
+
+`.` `,` or `/` indicates the numbers relate to a date, 
+
+`:` indicates a time, and
+
+` ` `;` or `_` indicates a switch from parsing a date (or time) to parsing a time (or date).
+
+*NOTE!*  If no formatting marks are used the routine will assume you mean seconds and then set the time accordingly.
+
 However, if you want to make it explicitly clear to the parser what is going on, you can use a number followed by a letter `s` `m` `h` `D` `M` or `Y` to denote the datetime unit to change. These can then be in any order.
 #### Missing Units Commands
-There is also method of telling the parser what to do with any datetime units you haven't specified. This uses `%` symbol followed by either a `0` or `r`. So `%0` will set all missing values to `0` if an hour, minute or second, or `1` if it is a day, month or year. Using `%r` will set missing values to the refernce datetime setup at the start. For example, `27s32m5h%r` will set the time to 05:32 and 27 seconds on the first of January 1970 (as this is the preset reference date). `27s32m5h%0` on the other hand will set the date to the first of January in year 1.
+There is also method of telling the parser what to do with any datetime units you haven't specified. 
+
+`%0` will set all missing values to `0` if an hour, minute or second, or `1` if it is a day, month or year. 
+
+`%r` will set missing values to the reference datetime which is defined in startup.txt. 
+
+For example, `27s32m5h%r` will set the time to 05:32 and 27 seconds on the first of January 1970 (as this is the preset reference date). Whereas, `27s32m5h%0` will set the date to the first of January in year 1.
 ### Getting the Time and Date
 #### Basics
-When you need a formatted date or time stamp, `${stamp_date}` or `${stamp_time}` will write it directly into your text. If you would like the pseudo-unix timestamp, use `${stamp_unix}`. The stamps are updated automatically when setting the time or date using the built-in subroutines. However, setting any variables manually won't automatically update the stamps, to do this use `*gosub_scene clock stamp`.
+When you need a formatted date or time stamp, `${stamp_date}` or `${stamp_time}` will write it directly into your text. If you would like the pseudo-unix timestamp, use `${stamp_unix}`. The stamps are updated automatically when setting the time or date, or when changing the stamp formatting, if using the built-in subroutines. However, setting any variables manually won't automatically update the stamps, to do this use `*gosub_scene clock stamp`.
 #### Formatting
 The subroutines `set_format_date` and `set_format_time` sets how the date and time should be written when you need a datetime stamp. This follows a similar procedure as setting the current time and date, but now we omit the numbers and add more letters and formatting marks to show how it will be written.
 
@@ -54,7 +73,7 @@ The subroutines `set_format_date` and `set_format_time` sets how the date and ti
 
 `m` or `M` To denote months.
 
-A single letter will write the number, a double letter will write the number with leading zeroes if below 10.
+For the above, a single letter will write the number, a double letter will write the number with leading zeroes if below 10.
 
 `ddd` or `DDD` will write the ordinal number i.e. `1st`, `2nd` `3rd` etc
 
@@ -68,6 +87,17 @@ A single or double letter writes the last two digits of the year. A triple or qu
 
 `, . _ - : ; ' / of` etc are added 'as is' into the format.
 
-Adding words and numbers to the formatted stamp can be done, BUT care should be taken not to duplicate any key letters which will be interpolated into numbers!
+*NOTE!* Adding words and numbers to the formatted stamp can be done, BUT care should be taken not to duplicate any key letters which will be interpolated into numbers!
 ### Travelling in Time
 Use `travel` and pass a formatted time code as a parameter to travel forwards or back in time. The amounts specified will be added to the corresponding variables, so use negative values to go backwards in time! The values passed are also applied to the individual units, so passing `1M` as a parameter will move the time forward 1 whole month, not 30.4 days. The stamps will then update accordingly.
+
+### Limitations
+Known limitations as of 2025.12.06. Future updates may remove these issues in the future!
+
+*NOTE!* No support for BC/BCE dates. Years below 1 will return a negative number.
+
+*NOTE!* No support for 12-hour clocktimes. All times are returned as 24-hour clocktimes.
+
+*NOTE!* No escape character support when formatting timestamps.
+
+*NOTE!* This is a *pseudo-unix* system emulating how the unix system works but is not, and cannot be, integrated with it using vanilla *ChoiceScript*. For this reason, it is impossible to get the current *actual* time the user is engaging with the work. Also, *leap seconds* have not been included in the pseudo-unix timestamp parser. To overcome these limitations a *JavaScript* solution is required. 
