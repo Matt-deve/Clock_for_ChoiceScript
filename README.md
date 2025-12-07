@@ -8,7 +8,9 @@ By *Matt-deve* aka *CodedQuill*.
 A clock module allowing you to easily change the time and date with a single call to a subroutine, and then dynamically write it into your text. Users can define their own calendrical systems, date and time stamp formatting, and even use a pseudo-unix timestamp.
 
 #### Contributing
-Any feedback is more than welcome, you can privately message me on the ***Choice of Games*** forum at https://forum.choiceofgames.com/u/codedquill/summary or search for the '*clock_for_choicescript*' topic thread and post a public comment.
+Any feedback is more than welcome!
+  * You can privately message me on the ***Choice of Games*** forum at https://forum.choiceofgames.com/u/codedquill/summary or search for the '*clock_for_choicescript*' topic thread and post a public comment.
+  * Check out the ***GitHub*** '*discussions*' tab and leave a comment. Or use the '*issues*' tab to report an issue.
 
 Check out my ***Patreon*** at https://patreon.com/CodedQuill - this work is distributed under the *MIT license*, any donations are not obligatory nor specifically associated with this project.
 
