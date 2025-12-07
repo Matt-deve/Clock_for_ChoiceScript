@@ -432,7 +432,6 @@
 *else
     *comment -- Set the time stamp
     *set stamp_time st_res&st_suff
-    ${st_res}
 
 *gosub _revert_settings
 
