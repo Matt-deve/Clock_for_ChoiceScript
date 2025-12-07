@@ -20,6 +20,7 @@
 *comment -- stamp           : Sets the stamps for the current time. If setting time manually (i.e. using *set min 30) use this subroutine to update the stamps to reflect the time change. If using 'travel' or 'set_current', this subroutine is automatically called internally.
 *comment -- floor           : Rounds a floating point number down to the nearest integer. (also works for negative values)
 *comment -- ceil            : Rounds a floating point number up to the nearest integer. (also works for negative values)
+*comment -- ordinal         : Returns the passed number and the ordinal suffix.
 *comment =====================================================================================================
 
 *comment -- VARIABLES TO CREATE IN STARTUP.TXT 
@@ -63,10 +64,10 @@
 *comment -- MAIN ROUTINES --
 *comment =====================================================================================================
 *comment---------------------------------------------------------
-*comment -- SET CURRENT -- (sc_code : string) -> (sec:number, min:number, hour:number, day:number, month:number, year:number)
-*comment -- Parses the passed string and sets the current time, any elements not set will remain unchanged. If a /0 is passed, it will set any missing elements to 0, if a /r is passed it will set any missing elements to the reference date.
+*comment -- SET CURRENT -- (sc_code : string, sc_resolve : boolean) -> (sec:number, min:number, hour:number, day:number, month:number, year:number)
+*comment -- Parses the passed string and sets the current time, any elements not set will remain unchanged. If a %0 is passed, it will set any missing elements to 0, if a %r is passed it will set any missing elements to the reference date. If sc_resolve is true any datetime unit overflows will be resolved.
 *label set_current
-*params sc_code
+*params sc_code sc_resolve
 
 *gosub _check_settings
 *comment -- Parse the passed string code of time values to change time by
@@ -127,7 +128,7 @@
     *else
         *bug "Check formatting, 'space' '_' ';' are separators between formatted dates and times"
     *set n ""
-*elseif (p = ",") or ((p = ".") or (p = "/"))
+*elseif (p = ",") or (((p = ".") or (p = "/")) or (p = "-"))
     *set datebreak_used +1
     *set breaking "date"
     *set {datebreaks[datebreak_used]} (n)
@@ -177,6 +178,8 @@
         *set ul_i +1
         *goto _used_loop
 
+*if (sc_resolve)
+    *gosub _resolve
 
 *gosub stamp
 
@@ -316,6 +319,7 @@
 *temp st_mark st_format#st_i
 *temp st_res ""
 *temp st_ref ""
+*temp st_suff ""
 
 *comment -- Set the unix timestamp
 *gosub _unix
@@ -372,10 +376,27 @@
         *elseif (st_format = format_time)
             *comment -- Time format being tested
             *if (st_mark = "H") or (st_mark = "h")
-                *if (st_count = 1) or (hour >= 10)
-                    *set st_res st_res&hour
-                *else
+                *temp st_12hour 0
+                *if (st_count = 2) and (hour < 10)
                     *set st_res st_res&"0${hour}"
+                *elseif (st_count = 3)
+                    *if (hour > 12)
+                        *set st_12hour (hour - 12)
+                        *set st_res st_res&(hour - 12)
+                    *else
+                        *set st_12hour (hour)
+                *elseif (st_count = 4) 
+                    *if (hour > 12)
+                        *set st_12hour (hour - 12)
+                        *set st_res st_res&("@{(st_hour < 10) 0${st_12hour}|${st_12hour}}")
+                    *else
+                        *set st_12hour (hour)
+                        *set st_res st_res&("@{(hour < 10) 0${hour}|${hour}}")
+                *else
+                    *set st_res st_res&hour
+                *comment -- set 12 hour clock suffix
+                *if (st_12hour != 0)
+                    *set st_suff ("@{(hour >= 12)  pm| am}")
             *elseif (st_mark = "M") or (st_mark = "m")
                 *if (st_count = 1) or (min >= 10)
                     *set st_res st_res&min
@@ -410,7 +431,7 @@
     *goto _stamp_loop
 *else
     *comment -- Set the time stamp
-    *set stamp_time st_res
+    *set stamp_time st_res&st_suff
     ${st_res}
 
 *gosub _revert_settings
@@ -442,6 +463,9 @@
 *comment -- Sets the return value to the ordinal number of the passed cardinal number
 *label ordinal
 *params o_num
+
+*comment -- Deliberate number test - should fail if param cannot be converted into a number.
+*temp on_t (o_num * 1)
 
 *temp_array suff 4 "st" "nd" "rd" "th"
 *temp o_len length(o_num)
