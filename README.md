@@ -1,6 +1,6 @@
 # Clock_for_ChoiceScript
 An open source Clock Module for *ChoiceScript* projects.
-By Matt-deve aka CodedQuill
+By *Matt-deve* aka *CodedQuill*.
 
 ## Description
 
@@ -10,7 +10,7 @@ A clock module allowing you to easily change the time and date with a single cal
 #### Contributing
 Any feedback is more than welcome, you can privately message me on the ***Choice of Games*** forum at https://forum.choiceofgames.com/u/codedquill/summary or search for the '*clock_for_choicescript*' topic thread and post a public comment.
 
-Any donations can be provided via my ***Patreon*** at https://patreon.com/CodedQuill
+Check out my ***Patreon*** at https://patreon.com/CodedQuill - this work is distributed under the *MIT license*, any donations are not obligatory nor specifically associated with this project.
 
 Wish to contribute? Via ***GitHub*** just fork the repo and submit a request. For anything else just message me.
 
