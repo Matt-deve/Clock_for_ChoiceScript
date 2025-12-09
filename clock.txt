@@ -23,8 +23,12 @@
 *comment -- ordinal         : Returns the passed number and the ordinal suffix.
 *comment =====================================================================================================
 
-*comment -- VARIABLES TO CREATE IN STARTUP.TXT 
+*comment -- VARIABLES TO CREATE IN STARTUP.TXT
+
 *comment -- START OF CUT AND PASTE --
+
+*comment -- RETURN VALUE CONTAINER --
+*create returnVal ""
 *comment -- CLOCK CONSTANTS --
 *create_array month_len 12 31 28 31 30 31 30 31 31 30 31 30 31
 *create_array month_names 12 "January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"
@@ -695,4 +699,5 @@
 
 
 *return
+
 
