@@ -18,6 +18,7 @@
 *comment -- to_format       :
 *comment -- travel          : Moves the current time, using numbers and letters 'smhDMY' and '-' (minus)
 *comment -- stamp           : Sets the stamps for the current time. If setting time manually (i.e. using *set min 30) use this subroutine to update the stamps to reflect the time change. If using 'travel' or 'set_current', this subroutine is automatically called internally.
+*comment -- passed          : Returns a boolean if the passed datetime string is in the past. (also accepts 'u' or 'U' to test unix stamps)
 *comment -- floor           : Rounds a floating point number down to the nearest integer. (also works for negative values)
 *comment -- ceil            : Rounds a floating point number up to the nearest integer. (also works for negative values)
 *comment -- ordinal         : Returns the passed number and the ordinal suffix.
@@ -442,6 +443,124 @@
 *return
 
 *comment---------------------------------------------------------
+*comment -- PASSED -- (p_date : string|number) -> (returnVal : boolean)
+*comment -- Parses the datetime string parameter and compares it to the current values, returning true if the param is in the past.
+*label passed
+*params p_date
+
+*comment -- Parse the passed string code of time values to change time by
+*if length(p_date) < 2
+    *set returnVal 0
+    *return
+*temp_array timebreaks 3 "hour" "min" "sec"
+*temp_array datebreaks 3 "day" "month" "year"
+*temp p_year "-1"
+*temp p_month "-1"
+*temp p_day "-1"
+*temp p_hour "-1"
+*temp p_min "-1"
+*temp p_sec "-1"
+*temp p_unix ""
+
+*temp p_len length(p_date)
+*temp p_i 1
+*temp p_n ""
+*temp p_sign ""
+*temp p_timebreak_used 0
+*temp p_datebreak_used 0
+*temp p_breaking ""
+*label _pass_loop
+*if (p_len = 0)
+    *bug "Cannot parse an empty string"
+*temp pp p_date#p_i
+*if (pp = 0) or ((pp = 1) or ((pp = 2) or ((pp = 3) or ((pp = 4) or ((pp = 5) or ((pp = 6) or ((pp = 7) or ((pp = 8) or ((pp = 9))))))))))
+    *set p_n p_n&pp
+*elseif (pp = "s")
+    *set p_sec p_n
+    *set p_n ""
+*elseif (pp = "m")
+    *set p_min p_n
+    *set p_n ""
+*elseif (pp = "h")
+    *set p_hour p_n
+    *set p_n ""
+*elseif (pp = "D")
+    *set p_day p_n
+    *set p_n ""
+*elseif (pp = "M")
+    *set p_month p_n
+    *set p_n ""
+*elseif (pp = "Y")
+    *set p_year p_n
+    *set p_n ""
+*elseif (pp = "U") or (pp = "u")
+    *set p_unix p_n
+    *set p_n ""
+    *goto _pass_exit
+*elseif (pp = "-")
+    *set p_sign pp
+*elseif (pp = " ") or ((pp = "_") or (pp = ";"))
+    *if (p_breaking = "time")
+        *set p_timebreak_used +1
+        *set {"p_"&{timebreaks[p_timebreak_used]}} p_n
+    *elseif (breaking = "date")
+        *set datebreak_used +1
+        *set {"p_"&{datebreaks[datebreak_used]}} p_n
+    *else
+        *bug "Check formatting, 'space' '_' ';' are separators between formatted dates and times"
+    *set n ""
+*elseif (pp = ",") or ((pp = ".") or (pp = "/"))
+    *set p_datebreak_used +1
+    *set p_breaking "date"
+    *set {"p_"&{datebreaks[p_datebreak_used]}} p_n
+    *set p_n ""
+*elseif (pp = ":")
+    *set p_timebreak_used +1
+    *set p_breaking "time"
+    *set {"p_"&{timebreaks[p_timebreak_used]}} p_n
+    *set p_n ""
+*else
+    *bug "Incorrect time unit passed -> ${pp} <- , must be a number or one of: 's' 'm' 'h' 'D' 'M' 'Y' '.' ',' ':' ';' '_' '/'or 'space'"
+
+*if (p_i < p_len)
+    *set p_i +1
+    *goto _pass_loop
+*elseif (p_n != "")
+    *if (p_breaking = "date")
+        *set p_datebreak_used +1
+        *set {datebreaks[p_datebreak_used]} p_n
+    *else
+        *set p_sec p_n
+
+*comment -- Compare parsed values to clock values and return true if the time passed is in the past
+*label _pass_exit
+*if (p_unix != "")
+    Stamp: ${stamp_unix} :: passed: ${p_unix}
+    *temp a "${stamp_unix}"
+    *temp b "${p_unix}"
+    *if (a > b)
+        *set returnVal true
+    *else
+        *set returnVal false
+    *return 
+*elseif (year > p_year) and (p_year != "-1")
+    *set returnVal true
+*elseif (month > p_month) and (p_month != "-1")
+    *set returnVal true
+*elseif (day > p_day) and (p_day != "-1")
+    *set returnVal true
+*elseif (hour > p_hour) and (p_hour != "-1")
+    *set returnVal true
+*elseif (min > p_min) and (p_min != "-1")
+    *set returnVal true
+*elseif (sec > p_sec) and (p_sec != "-1")
+    *set returnVal true
+*else
+    *set returnVal false
+
+*return
+
+*comment---------------------------------------------------------
 *comment -- FLOOR -- (floor_num : number) -> (returnVal : number)
 *comment -- Floors a number (or stringified number) to the nearest integer lower than the passed value
 *label floor
@@ -699,5 +818,6 @@
 
 
 *return
+
 
 
