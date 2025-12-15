@@ -117,6 +117,12 @@ A single or double letter writes the last two digits of the year. A triple or qu
 *Example:* Using `*gosub_scene clock set_format_date "wwww ddd of mmmm 'yy` will output *Thursday 1st of January '70*.
 ### Travelling in Time
 Use `travel` and pass a formatted time code as a parameter to travel forwards or back in time. The amounts specified will be added to the corresponding variables, so use negative values to go backwards in time! The values passed are also applied to the individual units, so passing `1M` as a parameter will move the time forward 1 whole month, not 30.4 days. The stamps will then update accordingly.
+### Testing Dates against the Clock
+Use `passed` and pass a formatted datetime code as a parameter to check whether the Clock has passed this datetime or not. If you pass only a partial date or time, it will only test those parts of the datetime value. If you wish to test a unix-like number suffix the number with `u` or `U`. This will then ***test only*** the unix number against the current `stamp_unix` value.
+
+*Example:* `*gosub_scene clock passed "25/12/2025 00:00:00"` If the clock is currently set to anytime before this date it will set `returnVal` to `false`, anytime after and `returnVal` will be `true`.
+
+*NOTE!* This tests if the Clock has ***passed*** the datetime parameter. If it is exactly the same it will set `returnVal` to `false`!
 
 ## Limitations
 Known limitations as of 2025.12.06. Future updates may remove these issues in the future!
