@@ -131,4 +131,4 @@ Known limitations as of 2025.12.06. Future updates may remove these issues in th
 
 *NOTE!* No escape character support when formatting timestamps.
 
-*NOTE!* This is a *pseudo-unix* system emulating how the unix system works but is not, and cannot be, integrated with it using vanilla *ChoiceScript*. For this reason, it is impossible to get the current *actual* time the user is engaging with the work. Also, *leap seconds* have not been included in the pseudo-unix timestamp parser. To overcome these limitations a *JavaScript* solution would be required, which has its own issues... 
+*NOTE!* This is a *pseudo-unix* system emulating how the unix system works but is not, and cannot be, integrated with it using vanilla *ChoiceScript*. For this reason, it is impossible to get the current *actual* time the user is engaging with the work. Also, *leap seconds* have not been included in the pseudo-unix timestamp parser. To overcome these limitations a *JavaScript* solution would be required, which is outside the scope of this resource. 
